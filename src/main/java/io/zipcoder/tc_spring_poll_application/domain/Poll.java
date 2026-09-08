@@ -1,5 +1,6 @@
 package io.zipcoder.tc_spring_poll_application.domain;
-import javax.persistence.*;
+import jakarta.persistence.*;
+
 import java.util.Set;
 
 @Entity

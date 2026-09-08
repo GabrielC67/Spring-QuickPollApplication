@@ -7,10 +7,15 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.Optional;
 
+/*
+This is section 3.1
+ */
 @RestController
 public class PollController {
 
@@ -51,22 +56,30 @@ public class PollController {
     //GET BY ID (READ)
     @RequestMapping(value="/polls/{pollId}", method=RequestMethod.GET)
     public ResponseEntity<?> getPoll(@PathVariable Long pollId) {
-        Poll p = pollRepository.findOne(pollId);
-        return new ResponseEntity<> (p, HttpStatus.OK);
+        Poll p = pollRepository.findById(pollId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll not found"));
+        return new ResponseEntity<>(p, HttpStatus.OK);
     }
 
     //UPDATE
     @RequestMapping(value="/polls/{pollId}", method=RequestMethod.PUT)
     public ResponseEntity<?> updatePoll(@RequestBody Poll poll, @PathVariable Long pollId) {
-        // Save the entity
-        Poll p = pollRepository.save(poll);
-        return new ResponseEntity<>(HttpStatus.OK);
+        Poll existingPoll = pollRepository.findById(pollId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll not found"));
+
+        // copy the fields you want updatable — replace with your actual Poll fields
+        existingPoll.setQuestion(poll.getQuestion());
+        // existingPoll.setOptions(poll.getOptions());
+        // ...any other fields Poll has
+
+        Poll saved = pollRepository.save(existingPoll);
+        return new ResponseEntity<>(saved, HttpStatus.OK);
     }
 
     //DELETE
     @RequestMapping(value="/polls/{pollId}", method=RequestMethod.DELETE)
     public ResponseEntity<?> deletePoll(@PathVariable Long pollId) {
-        pollRepository.delete(pollId);
+        pollRepository.deleteById(pollId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }
