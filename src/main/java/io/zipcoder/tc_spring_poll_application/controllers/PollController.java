@@ -3,6 +3,7 @@ package io.zipcoder.tc_spring_poll_application.controllers;
 import io.zipcoder.tc_spring_poll_application.domain.Poll;
 import io.zipcoder.tc_spring_poll_application.exceptions.ResourceNotFoundException;
 import io.zipcoder.tc_spring_poll_application.repositories.PollRepository;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -28,7 +29,7 @@ public class PollController {
 
     //CREATE
     @RequestMapping(value="/polls", method=RequestMethod.POST)
-    public ResponseEntity<?> createPoll(@RequestBody Poll poll) {
+    public ResponseEntity<?> createPoll(@RequestBody @Valid Poll poll) {
         poll = pollRepository.save(poll);
 
         //Set the location header for the newly created resource
@@ -61,7 +62,7 @@ public class PollController {
 
     //UPDATE
     @RequestMapping(value="/polls/{pollId}", method=RequestMethod.PUT)
-    public ResponseEntity<?> updatePoll(@RequestBody Poll poll, @PathVariable Long pollId) {
+    public ResponseEntity<?> updatePoll(@RequestBody @Valid Poll poll, @PathVariable Long pollId) {
         verifyPoll(pollId);
         Poll existingPoll = pollRepository.findById(pollId).get();
 
