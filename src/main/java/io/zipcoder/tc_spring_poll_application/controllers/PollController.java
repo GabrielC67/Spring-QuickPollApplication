@@ -1,17 +1,16 @@
 package io.zipcoder.tc_spring_poll_application.controllers;
 
 import io.zipcoder.tc_spring_poll_application.domain.Poll;
+import io.zipcoder.tc_spring_poll_application.exceptions.ResourceNotFoundException;
 import io.zipcoder.tc_spring_poll_application.repositories.PollRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.Optional;
 
 /*
 This is section 3.1
@@ -25,8 +24,6 @@ public class PollController {
     public PollController(PollRepository pollRepository){
         this.pollRepository = pollRepository;
     }
-
-
 
 
     //CREATE
@@ -54,18 +51,19 @@ public class PollController {
     }
 
     //GET BY ID (READ)
-    @RequestMapping(value="/polls/{pollId}", method=RequestMethod.GET)
+
+    @RequestMapping(value = "/polls/{pollId}", method = RequestMethod.GET)
     public ResponseEntity<?> getPoll(@PathVariable Long pollId) {
-        Poll p = pollRepository.findById(pollId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll not found"));
+        verifyPoll(pollId);
+        Poll p = pollRepository.findById(pollId).get();
         return new ResponseEntity<>(p, HttpStatus.OK);
     }
 
     //UPDATE
     @RequestMapping(value="/polls/{pollId}", method=RequestMethod.PUT)
     public ResponseEntity<?> updatePoll(@RequestBody Poll poll, @PathVariable Long pollId) {
-        Poll existingPoll = pollRepository.findById(pollId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Poll not found"));
+        verifyPoll(pollId);
+        Poll existingPoll = pollRepository.findById(pollId).get();
 
         // copy the fields you want updatable — replace with your actual Poll fields
         existingPoll.setQuestion(poll.getQuestion());
@@ -79,7 +77,14 @@ public class PollController {
     //DELETE
     @RequestMapping(value="/polls/{pollId}", method=RequestMethod.DELETE)
     public ResponseEntity<?> deletePoll(@PathVariable Long pollId) {
+        verifyPoll(pollId);
         pollRepository.deleteById(pollId);
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    public void verifyPoll(Long pollId) {
+        if (!pollRepository.existsById(pollId)) {
+            throw new ResourceNotFoundException("Poll not found with id: " + pollId);
+        }
     }
 }
